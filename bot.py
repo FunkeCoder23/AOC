@@ -121,9 +121,10 @@ async def echo(ctx, *, args):
 
 @bot.command(name='hug', help="Sends a hug")
 @commands.before_invoke(record_usage)
-async def hugA(ctx, *, args="❤️"):
+async def hugA(ctx, *, args=None):
     response = hugs[randint(0, len(hugs)-1)]
-    await ctx.send(args)
+    if(args != None):
+        await ctx.send(args)
     await ctx.send(response)
 
 
