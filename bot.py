@@ -1,5 +1,5 @@
 # bot.py
-
+import uwuify
 from discord.ext.commands import Bot
 import json
 from asyncio.windows_events import NULL
@@ -113,6 +113,12 @@ async def atvinnie(ctx):
     await ctx.send(response)
 
 
+@bot.command(name='uwu', help='You already know')
+@commands.before_invoke(record_usage)
+async def uwu(ctx, *, args):
+    await ctx.send(uwuify.uwu(args))
+
+
 @bot.command(name='test', help='Test shit out')
 @commands.before_invoke(record_usage)
 async def echo(ctx, *, args):
@@ -174,14 +180,74 @@ async def score(ctx, *, name):
     await ctx.send(embed=embed)
 
 
-@ bot.command(name='join', help='Shows information on how to join the Advent of Code Leaderboard')
-@ commands.before_invoke(record_usage)
+@bot.command(name='join', help='Shows information on how to join the Advent of Code Leaderboard')
+@commands.before_invoke(record_usage)
 async def join_us(ctx):
     embed = Embed(title="Join the Leaderboard", url="https://adventofcode.com/2020",
                   description="Leaderboard Code: 974092-d0365788", color=0x226d1c)
     embed.set_author(name="Advent of Code Leaderboard",
                      icon_url="https://i.imgur.com/Jlp3GB8.png")
     embed.set_thumbnail(url="https://i.stack.imgur.com/ArhPo.gif")
+    await ctx.send(embed=embed)
+
+
+@bot.command(name='day', help="Get the rankings (time) for individual days")
+@commands.before_invoke(record_usage)
+async def day(ctx, day):
+    if(day == None):
+        ctx.send("usage: !day <day>")
+        return
+    embed = Embed(title="Day "+day+" Leaderboard",
+                  description="descr", color=0x9a8623)
+    embed.set_author(name="Advent of Code Leaderboard",
+                     icon_url="https://i.imgur.com/Jlp3GB8.png")
+    embed.set_thumbnail(url="https://i.stack.imgur.com/ArhPo.gif")
+    lines = []
+
+    try:
+        update_json()
+    except RateLimitException:
+        print("rate limited")
+
+    part1 = {}
+    part2 = {}
+    members = data["members"]
+    for member in members:
+        name = members[member]["name"]
+        levels = members[member]["completion_day_level"]
+        if day in levels:
+            for part in levels[day]:
+                # print(levels[day][part])
+                if part == '1':
+                    part1.update({name: levels[day][part]["get_star_ts"]})
+                if part == '2':
+                    part2.update({name: levels[day][part]["get_star_ts"]})
+    part1 = dict(sorted(part1.items(), key=lambda item: item[1]))
+    part2 = dict(sorted(part2.items(), key=lambda item: item[1]))
+
+    response = ""
+    place = 0
+    for name in part1:
+        place += 1
+        response += str(place)+'. ' + name + '\n⠀' + \
+            datetime.fromtimestamp(int(part1[name])).strftime(
+                '%m/%d %I:%M:%S %p') + '\n'
+    embed.add_field(name="Part 1", value=response, inline=True)
+
+    response = ""
+    place = 0
+    for name in part2:
+        place += 1
+        response += str(place)+'. ' + name + '\n⠀' + \
+            datetime.fromtimestamp(int(part2[name])).strftime(
+                '%m/%d %I:%M:%S %p') + '\n'
+
+    embed.add_field(name="Part 2", value=response, inline=True)
+    updated = datetime.fromtimestamp(current_time).strftime('%I:%M:%S %p')
+    nextupdate = datetime.fromtimestamp(
+        900+current_time).strftime('%I:%M:%S %p')
+    embed.set_footer(
+        text="Updated at " + updated + "\nNext update available at " + nextupdate)
     await ctx.send(embed=embed)
 
 
@@ -222,7 +288,7 @@ async def board(ctx):
         elif (i == 3):
             name += "<:silver:752979184367698041>"
 
-        response = "‎‎⠀⠀" + str(leader["stars"])+" ⭐ | "
+        response = "‎‎⠀" + str(leader["stars"])+" ⭐ | "
         response += str(leader["local_score"]) + str(" points")
         response += "!" if (leader["local_score"] !=
                             0) else " <:sunglass_cry:757783574232694906>"
