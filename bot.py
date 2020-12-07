@@ -194,11 +194,11 @@ async def join_us(ctx):
 @bot.command(name='day', help="Get the rankings (time) for individual days")
 @commands.before_invoke(record_usage)
 async def day(ctx, day):
+    max_day = 0
     if(day == None):
-        ctx.send("usage: !day <day>")
+        await ctx.send("usage: !day <day>")
         return
-    embed = Embed(title="Day "+day+" Leaderboard",
-                  description="descr", color=0x9a8623)
+    embed = Embed(title="Day "+day+" Leaderboard", color=0x9a8623)
     embed.set_author(name="Advent of Code Leaderboard",
                      icon_url="https://i.imgur.com/Jlp3GB8.png")
     embed.set_thumbnail(url="https://i.stack.imgur.com/ArhPo.gif")
@@ -216,12 +216,16 @@ async def day(ctx, day):
         name = members[member]["name"]
         levels = members[member]["completion_day_level"]
         if day in levels:
+            max_day = day
             for part in levels[day]:
                 # print(levels[day][part])
                 if part == '1':
                     part1.update({name: levels[day][part]["get_star_ts"]})
                 if part == '2':
                     part2.update({name: levels[day][part]["get_star_ts"]})
+    if max_day == 0:
+        await ctx.send("No data available for day " + day)
+        return
     part1 = dict(sorted(part1.items(), key=lambda item: item[1]))
     part2 = dict(sorted(part2.items(), key=lambda item: item[1]))
 
@@ -278,7 +282,7 @@ async def board(ctx):
     for leader in lines:
         i += 1
         if leader["name"] == None:
-            name = "Alexis Alves"+": "
+            name = "Anonymous #"+leader+": "
         else:
             name = str(leader["name"])+"  "
         if (i == 1):
