@@ -15,8 +15,6 @@ from random import randint
 
 def extract_score(json):
     try:
-        # Also convert to int since update_time will be string.  When comparing
-        # strings, "10" is smaller than "2".
         return (int(json['local_score']))
     except KeyError:
         return 0
@@ -24,8 +22,6 @@ def extract_score(json):
 
 def extract_stars(json):
     try:
-        # Also convert to int since update_time will be string.  When comparing
-        # strings, "10" is smaller than "2".
         return (int(json['stars']))
     except KeyError:
         return 0
@@ -51,25 +47,6 @@ with open('secrets.json', 'r') as f:
 
 url = 'https://adventofcode.com/2020/leaderboard/private/view/974092.json'
 cookies = dict(session=sessionID)
-# members = data["members"]
-# i = 0
-# global response
-# response = "Leaderboard: \n"
-# for member_num in members:
-#     i += 1
-#     response += str(i)+". "
-#     response += str(members[member_num]["name"])+": "
-#     response += str(members[member_num]["stars"])+" stars "
-#     response += "Score: " + str(members[member_num]["local_score"]) + str("\n")
-# response += "\nCome join at https://adventofcode.com/ and join the leaderboard with code '974092-d0365788'\n"
-# print(response)
-# print(data)
-# datetime.datetime.fromtimestamp(
-#     int("1284105682")
-# ).strftime('%Y-%m-%d %H:%M:%S')
-# discord stuff
-
-# client = discord.Client()
 
 
 @limits(calls=1, period=900)
@@ -81,22 +58,6 @@ def update_json():
     global data
     data = r.json()
 
-
-# @client.event
-# async def on_ready():
-#     for guild in client.guilds:
-#         if guild.name == GUILD:
-#             break
-
-#     print(
-#         f'{client.user} is connected to the following guild:\n'
-#         f'{guild.name}(id: {guild.id})\n'
-#     )
-
-#     members = '\n - '.join([member.name for member in guild.members])
-#     print(f'Guild Members:\n - {members}')
-
-# client.run(TOKEN)
 
 async def record_usage(ctx):
     t = datetime.fromtimestamp(time()).strftime('%I:%M:%S %p')
@@ -137,10 +98,6 @@ async def hugA(ctx, *, args=None):
 @bot.command(name='score', help="Get score of user")
 @commands.before_invoke(record_usage)
 async def score(ctx, *, name):
-    # with open('AOC.json') as f:
-    #     data = json.load(f)
-    # print(name)
-    # current_time = time()
     try:
         update_json()
     except RateLimitException:
@@ -155,10 +112,8 @@ async def score(ctx, *, name):
     if(name_num == 0):
         await ctx.send(name + " not found in leaderboard. 😑")
         return
-    # print(name_num)
     score = members[name_num]["local_score"]
     levels = members[name_num]["completion_day_level"]
-    # print(levels)
     embed = Embed(title="{}\n{} Points".format(name, score), color=0x990000)
     embed.set_author(name="Advent of Code Leaderboard")
     for day in range(1, 26):
@@ -169,8 +124,6 @@ async def score(ctx, *, name):
                 levels[str(day)][stars]["get_star_ts"])).strftime('%b %d\n %I:%M %p')
             embed.add_field(name="Day " + str(day),
                             value=value, inline=True)
-            # print("Day " + str(day))
-            # print(value)
 
     updated = datetime.fromtimestamp(current_time).strftime('%I:%M:%S %p')
     nextupdate = datetime.fromtimestamp(
@@ -277,7 +230,6 @@ async def board(ctx):
         lines.append(members[member_num])
     lines.sort(key=extract_score, reverse=True)
     lines.sort(key=extract_stars, reverse=True)
-    # print(lines)
 
     for leader in lines:
         i += 1
@@ -298,13 +250,6 @@ async def board(ctx):
                             0) else " <:sunglass_cry:757783574232694906>"
         embed.add_field(name=str(i)+". " + name,
                         value=response, inline=False)
-    # response += "\nCome join at https://adventofcode.com/ and join the leaderboard with code '974092-d0365788'\n"
-    # response += "Updated at " + \
-    #     + "\n"
-    # response += "Next update available at " + \
-    #     datetime.fromtimestamp(
-    #         current_time+900).strftime('%I:%M %p') + "\n"
-    # print(response)
     updated = datetime.fromtimestamp(current_time).strftime('%I:%M:%S %p')
     nextupdate = datetime.fromtimestamp(
         900+current_time).strftime('%I:%M:%S %p')
@@ -313,5 +258,3 @@ async def board(ctx):
     await ctx.send(embed=embed)
 
 bot.run(TOKEN)
-
-# score(ctx=0, name="FunkeCoder23")
